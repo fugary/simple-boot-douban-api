@@ -1,2 +1,22 @@
-# simple-boot-douban-api
-Simple douban book api
+### 简单获取豆瓣BOOK的api
+
+目前使用calibre-web的时候发现豆瓣搜索元数据API已经不可用，自己写一个从网页抓取的API，只实现了简单的查询功能。
+
+### 使用Docker启动
+
+```shell
+docker pull fugary/simple-boot-douban-api
+docker run -it -p 8085:8085 fugary/simple-boot-douban-api
+```
+然后可以访问：
+
+http://localhost:8085/v2/book/search?q=深入理解计算机系统
+
+### 群晖calibre-web中使用
+
+下载容器并启动后，需要修改get_meta.js文件，需要进入calibre-web容器中修改。
+
+```shell
+vi /calibre-web/app/cps/static/js/get_meta.js
+# 找到 var douban = 
+```
