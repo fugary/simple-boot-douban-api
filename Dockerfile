@@ -1,5 +1,5 @@
 # Start with base image
-FROM openjdk:11
+FROM openjdk:11-jdk-oraclelinux8
 
 # Add Maintainer Info
 LABEL maintainer="fugary"
