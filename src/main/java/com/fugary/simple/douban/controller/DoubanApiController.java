@@ -9,6 +9,8 @@ import com.fugary.simple.douban.vo.ResultVo;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -38,6 +40,8 @@ import java.util.stream.Collectors;
 @RequestMapping("/v2/book")
 public class DoubanApiController {
 
+    private static final Logger logger = LoggerFactory.getLogger(DoubanApiController.class);
+
     @Autowired
     private DoubanApiConfigProperties doubanApiConfigProperties;
 
@@ -58,15 +62,18 @@ public class DoubanApiController {
         if (searchText.matches("\\d{10,}")) {
             return searchIsbn(searchText, request);
         }
+        long start = System.currentTimeMillis();
         ResultVo resultVo = new ResultVo();
         resultVo.setBooks(new ArrayList<>());
         final HttpHeaders headers = new HttpHeaders();
         headers.set(HttpHeaders.USER_AGENT, request.getHeader(HttpHeaders.USER_AGENT));
         final HttpEntity<String> entity = new HttpEntity<>(headers);
         String catType = doubanApiConfigProperties.getMappings().get("book");
-//        List<Element> bookElements = searchBookElements(searchText, entity, catType);
+//        List<Element> bookElements = searchBookElements(searchText, entity, catType); // 按照网页查询，应该速度稍慢
         List<Element> bookElements = searchBookElementsNew(searchText, entity, catType);
+        logger.info("查询列表{}条耗时{}ms", bookElements.size(), System.currentTimeMillis() - start);
         List<CompletableFuture<BookVo>> list = new ArrayList<>();
+        // 多线程查询多本书籍
         bookElements.forEach(content -> {
             String href = content.attr("href");
             Map<String, String> map = DoubanUrlUtils.parseQuery(URI.create(href).getQuery());
@@ -82,6 +89,7 @@ public class DoubanApiController {
             }, executorService));
         });
         CompletableFuture.allOf(list.toArray(new CompletableFuture[0])).get();
+        logger.info("查询书籍{}条完成耗时{}ms", bookElements.size(), System.currentTimeMillis() - start);
         return resultVo;
     }
 
@@ -111,8 +119,11 @@ public class DoubanApiController {
     protected List<Element> searchBookElementsNew(String searchText, HttpEntity<String> entity, String catType) {
         ResponseEntity<DoubanSearchResultVo> responseEntity = restTemplate.exchange(doubanApiConfigProperties.getSearchJsonUrl(), HttpMethod.GET, entity, DoubanSearchResultVo.class, catType, searchText);
         DoubanSearchResultVo doubanResultVo = responseEntity.getBody();
-        return doubanResultVo.getItems().stream().limit(doubanApiConfigProperties.getCount())
-                .flatMap(elementStr -> Jsoup.parseBodyFragment(elementStr).body().select("a.nbg").stream()).collect(Collectors.toList());
+        if (doubanResultVo != null) {
+            return doubanResultVo.getItems().stream().limit(doubanApiConfigProperties.getCount())
+                    .flatMap(elementStr -> Jsoup.parseBodyFragment(elementStr).body().select("a.nbg").stream()).collect(Collectors.toList());
+        }
+        return new ArrayList<>();
     }
 
 
@@ -136,6 +147,7 @@ public class DoubanApiController {
      * @return
      */
     protected ResultVo detailResult(String url, String id, String userAgent) {
+        long start = System.currentTimeMillis();
         final HttpHeaders headers = new HttpHeaders();
         headers.set(HttpHeaders.USER_AGENT, userAgent);
         final HttpEntity<String> entity = new HttpEntity<>(headers);
@@ -148,6 +160,7 @@ public class DoubanApiController {
             resultVo.setSuccess(true);
             resultVo.setBooks(Arrays.asList(bookVo));
         }
+        logger.info("精确查询{}耗时{}ms", id, System.currentTimeMillis() - start);
         return resultVo;
     }
 

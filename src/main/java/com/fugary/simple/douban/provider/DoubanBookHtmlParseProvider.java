@@ -80,8 +80,7 @@ public class DoubanBookHtmlParseProvider implements BookHtmlParseProvider {
                 } else if (text.startsWith("出版年")) {
                     bookVo.setPublishDate(getInfo(element));
                 } else if (text.startsWith("ISBN")) {
-                    bookVo.setIsbn10(getInfo(element));
-                    bookVo.setIsbn13(bookVo.getIsbn10());
+                    bookVo.setIsbn13(getInfo(element));
                 } else if (text.startsWith("页数")) {
                     bookVo.setPages(getInfo(element));
                 } else if (text.startsWith("定价")) {
@@ -112,6 +111,7 @@ public class DoubanBookHtmlParseProvider implements BookHtmlParseProvider {
                 tagMap.put("title", element.text());
                 return tagMap;
             }).collect(Collectors.toList()));
+            logger.info("解析书籍成功:{}", bookVo);
         }
         return bookVo;
     }
