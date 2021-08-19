@@ -17,9 +17,11 @@ public class DoubanApiConfigProperties {
 
     private Map<String, String> mappings = new HashMap<>();
 
-    private String userAgent;
+    private int count = 3;
 
     private String searchUrl;
+
+    private String searchJsonUrl;
 
     private String detailUrl;
 
