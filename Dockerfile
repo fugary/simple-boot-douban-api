@@ -11,12 +11,12 @@ VOLUME /tmp
 EXPOSE 8085
 
 ENV JAVA_OPTS="-Xmx512M"
-ENV DOUBAN_CONCURRENCY_SIZE = "5"
-ENV DOUBAN_BOOK_CACHE_SIZE = "1000"
-ENV DOUBAN_BOOK_CACHE_EXPIRE = "24h"
+ENV DOUBAN_CONCURRENCY_SIZE="5"
+ENV DOUBAN_BOOK_CACHE_SIZE="1000"
+ENV DOUBAN_BOOK_CACHE_EXPIRE="24h"
 
 # Application Jar File
-ARG JAR_FILE=target/simple-boot-douban-api-0.0.1-SNAPSHOT.jar
+ARG JAR_FILE=target/simple-boot-douban-api-0.9.1-SNAPSHOT.jar
 
 # Add Application Jar File to the Container
 ADD ${JAR_FILE} simple-boot-douban-api.jar
