@@ -5,11 +5,15 @@ spring:
     allow-bean-definition-overriding: true
   thymeleaf:
     enabled: false
+  cache:
+    caffeine:
+      spec: maximumSize=${DOUBAN_BOOK_CACHE_SIZE:1000},expireAfterWrite=${DOUBAN_BOOK_CACHE_EXPIRE:24h},weakValues
 douban:
   api:
     mappings:
       book: 1001
+    count: ${DOUBAN_CONCURRENCY_SIZE:5}
     search-url: https://www.douban.com/search?cat={searchType}&q={searchText}
     search-json-url: https://www.douban.com/j/search?start=0&cat={searchType}&q={searchText}
-    detail-url: https://book.douban.com/subject/{id}
-    isbn-url: https://book.douban.com/isbn/{isbn}
+    detail-url: https://book.douban.com/subject/{id}/
+    isbn-url: https://book.douban.com/isbn/{isbn}/

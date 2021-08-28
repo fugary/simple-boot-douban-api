@@ -5,11 +5,13 @@ import com.fugary.simple.douban.jsonp.JsonpResponseBodyAdvice;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.web.client.RestTemplate;
 
 @EnableConfigurationProperties({DoubanApiConfigProperties.class})
 @SpringBootApplication
+@EnableCaching
 public class SimpleBootDoubanApiApplication {
 
     @Bean

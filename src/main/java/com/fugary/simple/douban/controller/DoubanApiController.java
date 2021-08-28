@@ -1,8 +1,9 @@
 package com.fugary.simple.douban.controller;
 
 import com.fugary.simple.douban.config.DoubanApiConfigProperties;
-import com.fugary.simple.douban.provider.BookHtmlParseProvider;
+import com.fugary.simple.douban.loader.BookLoader;
 import com.fugary.simple.douban.util.DoubanUrlUtils;
+import com.fugary.simple.douban.util.HttpRequestUtils;
 import com.fugary.simple.douban.vo.BookVo;
 import com.fugary.simple.douban.vo.DoubanSearchResultVo;
 import com.fugary.simple.douban.vo.ResultVo;
@@ -19,7 +20,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
-import javax.servlet.http.HttpServletRequest;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -49,24 +49,24 @@ public class DoubanApiController {
     private RestTemplate restTemplate;
 
     @Autowired
-    private BookHtmlParseProvider bookHtmlParseProvider;
+    private BookLoader bookLoader;
 
     /**
      * 新建一个线程池
      */
-    private ExecutorService executorService = Executors.newFixedThreadPool(5);
+    private ExecutorService executorService = Executors.newFixedThreadPool(10);
 
     @GetMapping("/search")
     @ResponseBody
-    public ResultVo searchBook(@RequestParam("q") String searchText, HttpServletRequest request) throws ExecutionException, InterruptedException {
+    public ResultVo searchBook(@RequestParam("q") String searchText) throws ExecutionException, InterruptedException {
         if (searchText.matches("\\d{10,}")) {
-            return searchIsbn(searchText, request);
+            return searchIsbn(searchText);
         }
         long start = System.currentTimeMillis();
         ResultVo resultVo = new ResultVo();
         resultVo.setBooks(new ArrayList<>());
         final HttpHeaders headers = new HttpHeaders();
-        headers.set(HttpHeaders.USER_AGENT, request.getHeader(HttpHeaders.USER_AGENT));
+        headers.set(HttpHeaders.USER_AGENT, HttpRequestUtils.getHeader(HttpHeaders.USER_AGENT));
         final HttpEntity<String> entity = new HttpEntity<>(headers);
         String catType = doubanApiConfigProperties.getMappings().get("book");
 //        List<Element> bookElements = searchBookElements(searchText, entity, catType); // 按照网页查询，应该速度稍慢
@@ -79,8 +79,7 @@ public class DoubanApiController {
             Map<String, String> map = DoubanUrlUtils.parseQuery(URI.create(href).getQuery());
             String url = map.get("url");
             list.add(CompletableFuture.supplyAsync(() -> {
-                String bookStr = restTemplate.exchange(url, HttpMethod.GET, entity, String.class).getBody();
-                BookVo bookVo = bookHtmlParseProvider.parse(url, bookStr);
+                BookVo bookVo = bookLoader.loadBook(url);
                 if (bookVo != null) {
                     resultVo.setSuccess(true);
                     resultVo.getBooks().add(bookVo);
@@ -129,14 +128,14 @@ public class DoubanApiController {
 
     @GetMapping("/isbn/{isbn}")
     @ResponseBody
-    public ResultVo searchIsbn(@PathVariable("isbn") String isbn, HttpServletRequest request) {
-        return detailResult(doubanApiConfigProperties.getIsbnUrl(), isbn, request.getHeader(HttpHeaders.USER_AGENT));
+    public ResultVo searchIsbn(@PathVariable("isbn") String isbn) {
+        return detailResult(doubanApiConfigProperties.getIsbnUrl(), isbn);
     }
 
     @GetMapping("/{id}")
     @ResponseBody
-    public ResultVo detail(@PathVariable("id") String id, HttpServletRequest request) {
-        return detailResult(doubanApiConfigProperties.getDetailUrl(), id, request.getHeader(HttpHeaders.USER_AGENT));
+    public ResultVo detail(@PathVariable("id") String id) {
+        return detailResult(doubanApiConfigProperties.getDetailUrl(), id);
     }
 
     /**
@@ -146,16 +145,11 @@ public class DoubanApiController {
      * @param id
      * @return
      */
-    protected ResultVo detailResult(String url, String id, String userAgent) {
+    protected ResultVo detailResult(String url, String id) {
         long start = System.currentTimeMillis();
-        final HttpHeaders headers = new HttpHeaders();
-        headers.set(HttpHeaders.USER_AGENT, userAgent);
-        final HttpEntity<String> entity = new HttpEntity<>(headers);
         URI uri = restTemplate.getUriTemplateHandler().expand(url, id);
-        ResponseEntity<String> responseEntity = restTemplate.exchange(uri, HttpMethod.GET, entity, String.class);
-        String resultStr = responseEntity.getBody();
         ResultVo resultVo = new ResultVo();
-        BookVo bookVo = bookHtmlParseProvider.parse(uri.toString(), resultStr);
+        BookVo bookVo = bookLoader.loadBook(uri.toString());
         if (bookVo != null) {
             resultVo.setSuccess(true);
             resultVo.setBooks(Arrays.asList(bookVo));
