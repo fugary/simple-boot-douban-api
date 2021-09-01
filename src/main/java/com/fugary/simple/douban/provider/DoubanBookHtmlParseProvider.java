@@ -31,7 +31,8 @@ public class DoubanBookHtmlParseProvider implements BookHtmlParseProvider {
     @Override
     public BookVo parse(String url, String html) {
         Document doc = Jsoup.parse(html);
-        Element content = doc.select("#content").get(0);
+        Elements contentElements = doc.select("#content");
+        Element content = contentElements.isEmpty() ? null : contentElements.get(0);
         BookVo bookVo = null;
         if (content != null) {
             bookVo = new BookVo();
@@ -112,6 +113,8 @@ public class DoubanBookHtmlParseProvider implements BookHtmlParseProvider {
                 return tagMap;
             }).collect(Collectors.toList()));
             logger.info("解析书籍成功:{}", bookVo);
+        } else {
+            logger.error("获取书籍失败：{}", html);
         }
         return bookVo;
     }

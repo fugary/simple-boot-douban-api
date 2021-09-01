@@ -26,7 +26,7 @@ public class BookVo implements Serializable {
     private String summary;
     private String publisher;
     @JsonProperty("pubdate")
-    private String publishDate;
+    private String publishDate = "1900-01";
     private List<Map<String, String>> tags;
     private Map<String, String> rating;
     private Map<String, String> series;
