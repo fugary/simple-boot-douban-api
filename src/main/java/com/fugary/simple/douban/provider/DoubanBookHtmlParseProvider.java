@@ -33,6 +33,7 @@ public class DoubanBookHtmlParseProvider implements BookHtmlParseProvider {
         Document doc = Jsoup.parse(html);
         Elements contentElements = doc.select("#content");
         Element content = contentElements.isEmpty() ? null : contentElements.get(0);
+        String title = doc.select("[property='v:itemreviewed']").text(); // title获取方式修改
         BookVo bookVo = null;
         if (content != null) {
             bookVo = new BookVo();
@@ -47,9 +48,9 @@ public class DoubanBookHtmlParseProvider implements BookHtmlParseProvider {
             }
             Element aNbg = content.selectFirst("a.nbg");
             if (aNbg != null) {
-                bookVo.setTitle(aNbg.attr("title"));
                 bookVo.setImage(aNbg.attr("href"));
             }
+            bookVo.setTitle(title);
             Element rateElement = content.selectFirst("strong.rating_num");
             if (rateElement != null) {
                 Map<String, String> ratingMap = new HashMap<>();
