@@ -20,5 +20,7 @@ http://localhost:8085/v2/book/search?q=深入理解计算机系统
 vi /calibre-web/app/cps/static/js/get_meta.js
 # 找到 var douban = "https://api.douban.com"; 替换成自己的NAS_IP地址
 var douban = "http://NAS_IP:8085";
+# 如果不熟悉vi命令，这里提供一种更快的替换的方式，使用sed命令：
+sed -i 's#https://api.douban.com#http://NAS_IP:8085#g' /calibre-web/app/cps/static/js/get_meta.js
 ```
 参考配置使用文档：https://fugary.com/?p=213
