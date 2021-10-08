@@ -103,9 +103,9 @@ public class DoubanBookHtmlParseProvider implements BookHtmlParseProvider {
                     }
                 }
             }
-            Element summaryElement = content.selectFirst("#link-report .intro");
+            Element summaryElement = content.selectFirst("#link-report :not(.short) .intro");
             if (summaryElement != null) {
-                bookVo.setSummary(summaryElement.text());
+                bookVo.setSummary(summaryElement.html());
             }
             bookVo.setTags(content.select("a.tag").stream().map(element -> {
                 Map<String, String> tagMap = new HashMap<>();
