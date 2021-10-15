@@ -1,6 +1,7 @@
 package com.fugary.simple.douban.provider;
 
 import com.fugary.simple.douban.vo.BookVo;
+import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -105,7 +106,7 @@ public class DoubanBookHtmlParseProvider implements BookHtmlParseProvider {
             }
             Element summaryElement = content.selectFirst("#link-report :not(.short) .intro");
             if (summaryElement != null) {
-                bookVo.setSummary(summaryElement.html());
+                bookVo.setSummary(StringUtils.trimToEmpty(summaryElement.html()));
             }
             bookVo.setTags(content.select("a.tag").stream().map(element -> {
                 Map<String, String> tagMap = new HashMap<>();
