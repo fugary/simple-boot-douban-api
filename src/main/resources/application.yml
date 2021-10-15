@@ -17,3 +17,6 @@ douban:
     search-json-url: https://www.douban.com/j/search?start=0&cat={searchType}&q={searchText}
     detail-url: https://book.douban.com/subject/{id}/
     isbn-url: https://book.douban.com/isbn/{isbn}/
+    image-url: https://{image}.doubanio.com
+    proxy-image-url: ${DOUBAN_PROXY_IMAGE_URL:false}
+    image-domains: [ 1,2,3,4,9 ]
