@@ -105,9 +105,11 @@ public class DoubanBookHtmlParseProvider implements BookHtmlParseProvider {
                 }
             }
             Element summaryElement = content.selectFirst("#link-report :not(.short) .intro");
+            String summary = StringUtils.EMPTY;
             if (summaryElement != null) {
-                bookVo.setSummary(StringUtils.trimToEmpty(summaryElement.html()));
+                summary = StringUtils.trimToEmpty(summaryElement.html());
             }
+            bookVo.setSummary(summary);
             bookVo.setTags(content.select("a.tag").stream().map(element -> {
                 Map<String, String> tagMap = new HashMap<>();
                 tagMap.put("name", element.text());
