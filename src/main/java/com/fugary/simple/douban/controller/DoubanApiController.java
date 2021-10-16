@@ -176,7 +176,7 @@ public class DoubanApiController {
             try {
                 URI uri = new URI(bookVo.getImage());
                 HttpServletRequest request = HttpRequestUtils.getCurrentRequest();
-                bookVo.setImage(UriComponentsBuilder.fromUri(uri).scheme(request.getScheme())
+                bookVo.setImage(UriComponentsBuilder.fromUri(uri).scheme(HttpRequestUtils.getSchema())
                         .host(request.getServerName()).port(request.getServerPort())
                         .build().toUriString());
             } catch (URISyntaxException e) {

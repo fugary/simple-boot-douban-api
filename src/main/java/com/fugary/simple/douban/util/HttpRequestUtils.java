@@ -1,5 +1,6 @@
 package com.fugary.simple.douban.util;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
@@ -36,5 +37,25 @@ public class HttpRequestUtils {
             return currentRequest.getHeader(key);
         }
         return null;
+    }
+
+    /**
+     * 计算schema
+     *
+     * @return
+     */
+    public static String getSchema() {
+        HttpServletRequest currentRequest = getCurrentRequest();
+        String schema = StringUtils.EMPTY;
+        if (currentRequest != null) {
+            schema = currentRequest.getHeader("x-forwarded-proto");
+            if (StringUtils.isBlank(schema)) {
+                schema = currentRequest.getScheme();
+            }
+        }
+        if (StringUtils.isBlank(schema)) {
+            schema = "http";
+        }
+        return schema;
     }
 }
