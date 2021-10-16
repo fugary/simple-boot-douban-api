@@ -1,9 +1,12 @@
 package com.fugary.simple.douban.controller;
 
 import com.fugary.simple.douban.config.DoubanApiConfigProperties;
+import com.fugary.simple.douban.loader.BookLoader;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,8 +15,8 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.net.URI;
-import java.util.Enumeration;
 
 /**
  * Created on 2021/10/15 15:47 .<br>
@@ -22,6 +25,7 @@ import java.util.Enumeration;
  */
 @Controller
 @RequestMapping("/")
+@Slf4j
 public class DoubanImageController {
 
     @Autowired
@@ -29,6 +33,9 @@ public class DoubanImageController {
 
     @Autowired
     private RestTemplate restTemplate;
+
+    @Autowired
+    private BookLoader bookLoader;
 
     /**
      * 获取URI
@@ -42,7 +49,7 @@ public class DoubanImageController {
 
     @ResponseBody
     @GetMapping(value = "/view/**", produces = MediaType.IMAGE_JPEG_VALUE)
-    public byte[] viewImage(HttpServletRequest request) {
+    public byte[] viewImage(HttpServletRequest request, HttpServletResponse response) {
         for (Integer serverId : doubanApiConfigProperties.getImageDomains()) {
             URI uri = getImageURI(serverId);
             String requestUrl = request.getRequestURI();
@@ -50,18 +57,12 @@ public class DoubanImageController {
                     .path(requestUrl)
                     .query(request.getQueryString())
                     .build(true).toUri();
-            HttpHeaders headers = new HttpHeaders();
-            Enumeration<String> headerNames = request.getHeaderNames();
-            while (headerNames.hasMoreElements()) {
-                String headerName = headerNames.nextElement();
-                headers.set(headerName, request.getHeader(headerName));
-            }
-            HttpEntity<?> entity = new HttpEntity<>(headers);
-            ResponseEntity<byte[]> responseEntity = restTemplate.exchange(uri, HttpMethod.GET, entity, byte[].class);
-            if (HttpStatus.OK.equals(responseEntity.getStatusCode())) {
-                return responseEntity.getBody();
+            byte[] resultBytes = bookLoader.loadImage(uri.toString());
+            if (resultBytes != null) {
+                return resultBytes;
             }
         }
+        response.setStatus(HttpStatus.NOT_FOUND.value());
         return new byte[0];
     }
 }

@@ -1,13 +1,12 @@
 package com.fugary.simple.douban.provider;
 
 import com.fugary.simple.douban.vo.BookVo;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -20,10 +19,9 @@ import java.util.stream.Collectors;
  *
  * @author gary.fu
  */
+@Slf4j
 @Component
 public class DoubanBookHtmlParseProvider implements BookHtmlParseProvider {
-
-    private static final Logger logger = LoggerFactory.getLogger(DoubanBookHtmlParseProvider.class);
 
     private static final Pattern ID_PATTERN = Pattern.compile(".*/subject/(\\d+)/?");
 
@@ -116,9 +114,9 @@ public class DoubanBookHtmlParseProvider implements BookHtmlParseProvider {
                 tagMap.put("title", element.text());
                 return tagMap;
             }).collect(Collectors.toList()));
-            logger.info("解析书籍成功:{}", bookVo);
+            log.info("解析书籍成功:{}", bookVo);
         } else {
-            logger.error("获取书籍失败：{}", html);
+            log.error("获取书籍失败：{}", html);
         }
         return bookVo;
     }

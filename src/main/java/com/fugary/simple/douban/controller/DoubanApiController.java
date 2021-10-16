@@ -7,12 +7,11 @@ import com.fugary.simple.douban.util.HttpRequestUtils;
 import com.fugary.simple.douban.vo.BookVo;
 import com.fugary.simple.douban.vo.DoubanSearchResultVo;
 import com.fugary.simple.douban.vo.ResultVo;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -42,11 +41,10 @@ import java.util.stream.Collectors;
  *
  * @author gary.fu
  */
+@Slf4j
 @RestController
 @RequestMapping("/v2/book")
 public class DoubanApiController {
-
-    private static final Logger logger = LoggerFactory.getLogger(DoubanApiController.class);
 
     @Autowired
     private DoubanApiConfigProperties doubanApiConfigProperties;
@@ -77,7 +75,7 @@ public class DoubanApiController {
         String catType = doubanApiConfigProperties.getMappings().get("book");
 //        List<Element> bookElements = searchBookElements(searchText, entity, catType); // 按照网页查询，应该速度稍慢
         List<Element> bookElements = searchBookElementsNew(searchText, entity, catType);
-        logger.info("查询列表{}条耗时{}ms", bookElements.size(), System.currentTimeMillis() - start);
+        log.info("查询列表{}条耗时{}ms", bookElements.size(), System.currentTimeMillis() - start);
         List<CompletableFuture<BookVo>> list = new ArrayList<>();
         RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
         // 多线程查询多本书籍
@@ -97,7 +95,7 @@ public class DoubanApiController {
             }, executorService));
         });
         CompletableFuture.allOf(list.toArray(new CompletableFuture[0])).get();
-        logger.info("查询书籍{}条完成耗时{}ms", bookElements.size(), System.currentTimeMillis() - start);
+        log.info("查询书籍{}条完成耗时{}ms", bookElements.size(), System.currentTimeMillis() - start);
         return resultVo;
     }
 
@@ -164,7 +162,7 @@ public class DoubanApiController {
             processBookImage(bookVo);
             resultVo.setBooks(Arrays.asList(bookVo));
         }
-        logger.info("精确查询{}耗时{}ms", id, System.currentTimeMillis() - start);
+        log.info("精确查询{}耗时{}ms", id, System.currentTimeMillis() - start);
         return resultVo;
     }
 
@@ -182,7 +180,7 @@ public class DoubanApiController {
                         .host(request.getServerName()).port(request.getServerPort())
                         .build().toUriString());
             } catch (URISyntaxException e) {
-                logger.error("代理图片URL错误", e);
+                log.error("代理图片URL错误", e);
             }
         }
     }

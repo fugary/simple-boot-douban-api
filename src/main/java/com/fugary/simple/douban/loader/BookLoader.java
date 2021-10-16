@@ -15,4 +15,12 @@ public interface BookLoader {
      * @return
      */
     BookVo loadBook(String bookUrl);
+
+    /**
+     * 加载图片
+     *
+     * @param imageUrl
+     * @return
+     */
+    byte[] loadImage(String imageUrl);
 }

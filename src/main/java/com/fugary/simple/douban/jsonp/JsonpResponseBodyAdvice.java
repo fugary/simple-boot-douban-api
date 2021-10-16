@@ -2,8 +2,7 @@ package com.fugary.simple.douban.jsonp;
 
 import com.fasterxml.jackson.databind.util.JSONPObject;
 import com.fugary.simple.douban.controller.DoubanApiController;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJacksonValue;
@@ -23,6 +22,7 @@ import java.util.regex.Pattern;
  *
  * @author gary.fu
  */
+@Slf4j
 @ControllerAdvice(basePackageClasses = {DoubanApiController.class})
 public class JsonpResponseBodyAdvice extends AbstractMappingJacksonResponseBodyAdvice {
 
@@ -30,9 +30,6 @@ public class JsonpResponseBodyAdvice extends AbstractMappingJacksonResponseBodyA
      * Pattern for validating jsonp callback parameter values.
      */
     private static final Pattern CALLBACK_PARAM_PATTERN = Pattern.compile("[0-9A-Za-z_.]*");
-
-
-    private final Logger logger = LoggerFactory.getLogger(JsonpResponseBodyAdvice.class);
 
     private final String[] jsonpQueryParamNames;
 
@@ -52,8 +49,8 @@ public class JsonpResponseBodyAdvice extends AbstractMappingJacksonResponseBodyA
             String value = servletRequest.getParameter(name);
             if (value != null) {
                 if (!isValidJsonpQueryParam(value)) {
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("Ignoring invalid jsonp parameter value: " + value);
+                    if (log.isDebugEnabled()) {
+                        log.debug("Ignoring invalid jsonp parameter value: " + value);
                     }
                     continue;
                 }
