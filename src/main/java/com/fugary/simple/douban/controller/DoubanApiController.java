@@ -70,7 +70,7 @@ public class DoubanApiController {
         ResultVo resultVo = new ResultVo();
         resultVo.setBooks(new ArrayList<>());
         final HttpHeaders headers = new HttpHeaders();
-        headers.set(HttpHeaders.USER_AGENT, HttpRequestUtils.getHeader(HttpHeaders.USER_AGENT));
+        headers.set(HttpHeaders.USER_AGENT, HttpRequestUtils.getUserAgent());
         final HttpEntity<String> entity = new HttpEntity<>(headers);
         String catType = doubanApiConfigProperties.getMappings().get("book");
 //        List<Element> bookElements = searchBookElements(searchText, entity, catType); // 按照网页查询，应该速度稍慢

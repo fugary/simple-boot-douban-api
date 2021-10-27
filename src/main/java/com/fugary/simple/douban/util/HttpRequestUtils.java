@@ -1,6 +1,7 @@
 package com.fugary.simple.douban.util;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.http.HttpHeaders;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
@@ -37,6 +38,19 @@ public class HttpRequestUtils {
             return currentRequest.getHeader(key);
         }
         return null;
+    }
+
+    /**
+     * 获取UserAgent,如果为空给默认值
+     *
+     * @return
+     */
+    public static String getUserAgent() {
+        String userAgent = getHeader(HttpHeaders.USER_AGENT);
+        if (StringUtils.isBlank(userAgent)) {
+            userAgent = "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3573.0 Safari/537.36";
+        }
+        return userAgent;
     }
 
     /**
