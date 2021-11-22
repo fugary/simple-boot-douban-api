@@ -20,3 +20,4 @@ douban:
     image-url: https://{image}.doubanio.com
     proxy-image-url: ${DOUBAN_PROXY_IMAGE_URL:false}
     image-domains: [ 1,2,3,4,9 ]
+    cookie: ${DOUBAN_COOKIE:""}

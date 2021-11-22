@@ -32,4 +32,6 @@ public class DoubanApiConfigProperties {
 
     private boolean proxyImageUrl;
 
+    private String cookie;
+
 }

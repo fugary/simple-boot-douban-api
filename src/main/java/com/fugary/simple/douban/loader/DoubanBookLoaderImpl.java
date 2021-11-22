@@ -1,5 +1,6 @@
 package com.fugary.simple.douban.loader;
 
+import com.fugary.simple.douban.config.DoubanApiConfigProperties;
 import com.fugary.simple.douban.provider.BookHtmlParseProvider;
 import com.fugary.simple.douban.util.HttpRequestUtils;
 import com.fugary.simple.douban.vo.BookVo;
@@ -19,6 +20,9 @@ import org.springframework.web.client.RestTemplate;
 public class DoubanBookLoaderImpl implements BookLoader {
 
     @Autowired
+    private DoubanApiConfigProperties doubanApiConfigProperties;
+
+    @Autowired
     private RestTemplate restTemplate;
 
     @Autowired
@@ -29,6 +33,7 @@ public class DoubanBookLoaderImpl implements BookLoader {
     public BookVo loadBook(String bookUrl) {
         HttpHeaders headers = new HttpHeaders();
         headers.set(HttpHeaders.USER_AGENT, HttpRequestUtils.getUserAgent());
+        headers.set(HttpHeaders.COOKIE, doubanApiConfigProperties.getCookie());
         final HttpEntity<String> entity = new HttpEntity<>(headers);
         String bookStr = restTemplate.exchange(bookUrl, HttpMethod.GET, entity, String.class).getBody();
         return bookHtmlParseProvider.parse(bookUrl, bookStr);
@@ -39,6 +44,7 @@ public class DoubanBookLoaderImpl implements BookLoader {
     public byte[] loadImage(String imageUrl) {
         HttpHeaders headers = new HttpHeaders();
         headers.set(HttpHeaders.USER_AGENT, HttpRequestUtils.getUserAgent());
+        headers.set(HttpHeaders.COOKIE, doubanApiConfigProperties.getCookie());
         HttpEntity<?> entity = new HttpEntity<>(headers);
         try {
             ResponseEntity<byte[]> responseEntity = restTemplate.exchange(imageUrl, HttpMethod.GET, entity, byte[].class);
