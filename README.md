@@ -2,7 +2,7 @@
 
 目前使用calibre-web的时候发现豆瓣搜索元数据API已经不可用，自己写一个从网页抓取的API，只实现了简单的查询功能。
 
-**注意：新版本已经不再用JS发起请求了，需要使用：https://github.com/fugary/calibre-web-douban-api **
+** 注意：新版本已经不再用JS发起请求了，需要使用：https://github.com/fugary/calibre-web-douban-api **
 
 ### 使用Docker启动
 
