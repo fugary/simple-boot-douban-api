@@ -18,6 +18,8 @@ http://localhost:8085/v2/book/search?q=深入理解计算机系统
 
 下载容器并启动后，需要修改get_meta.js文件，需要进入calibre-web容器中修改。
 
+**注意：新版本已经不再用JS发起请求了，需要使用：https://github.com/fugary/calibre-web-douban-api**
+
 ```shell
 vi /calibre-web/app/cps/static/js/get_meta.js
 # 找到 var douban = "https://api.douban.com"; 替换成自己的NAS_IP地址

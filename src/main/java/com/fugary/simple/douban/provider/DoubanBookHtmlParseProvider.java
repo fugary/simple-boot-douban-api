@@ -14,6 +14,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static com.fugary.simple.douban.util.DoubanUrlUtils.ID_PATTERN;
+
 /**
  * Created on 2021/8/17 18:58 .<br>
  *
@@ -23,14 +25,14 @@ import java.util.stream.Collectors;
 @Component
 public class DoubanBookHtmlParseProvider implements BookHtmlParseProvider {
 
-    private static final Pattern ID_PATTERN = Pattern.compile(".*/subject/(\\d+)/?");
-
     private static final Pattern SERIES_PATTERN = Pattern.compile(".*/series/(\\d+)/?");
+
+    private static final Pattern TAGS_PATTERN = Pattern.compile("criteria = '(.+)'");
 
     @Override
     public BookVo parse(String url, String html) {
         Document doc = Jsoup.parse(html);
-        Elements contentElements = doc.select("#content");
+        Elements contentElements = doc.select("body");
         Element content = contentElements.isEmpty() ? null : contentElements.get(0);
         String title = doc.select("[property='v:itemreviewed']").text(); // title获取方式修改
         BookVo bookVo = null;
@@ -50,7 +52,7 @@ public class DoubanBookHtmlParseProvider implements BookHtmlParseProvider {
                 bookVo.setImage(aNbg.attr("href"));
             }
             bookVo.setTitle(title);
-            Element rateElement = content.selectFirst("strong.rating_num");
+            Element rateElement = content.selectFirst("[property='v:average']");
             if (rateElement != null) {
                 Map<String, String> ratingMap = new HashMap<>();
                 ratingMap.put("average", rateElement.text().trim());
@@ -77,7 +79,7 @@ public class DoubanBookHtmlParseProvider implements BookHtmlParseProvider {
                 } else if (text.startsWith("原作名")) {
                     bookVo.setOriginTitle(getInfo(element));
                 } else if (text.startsWith("出版社")) {
-                    bookVo.setPublisher(getInfo(element));
+                    bookVo.setPublisher(getInfoOrNext(element));
                 } else if (text.startsWith("出版年")) {
                     bookVo.setPublishDate(getInfo(element));
                 } else if (text.startsWith("ISBN")) {
@@ -108,21 +110,37 @@ public class DoubanBookHtmlParseProvider implements BookHtmlParseProvider {
                 summary = StringUtils.trimToEmpty(summaryElement.html());
             }
             bookVo.setSummary(summary);
-            bookVo.setTags(content.select("a.tag").stream().map(element -> {
-                Map<String, String> tagMap = new HashMap<>();
-                tagMap.put("name", element.text());
-                tagMap.put("title", element.text());
-                return tagMap;
-            }).collect(Collectors.toList()));
+            Matcher tagMatcher = TAGS_PATTERN.matcher(html);
+            if (tagMatcher.find()) {
+                bookVo.setTags(Arrays.stream(tagMatcher.group(1).split("[|]")).filter(tag -> tag.startsWith("7:")).distinct()
+                        .map(tag -> {
+                            tag = tag.replace("7:", "");
+                            Map<String, String> tagMap = new HashMap<>();
+                            tagMap.put("name", tag);
+                            tagMap.put("title", tag);
+                            return tagMap;
+                        }).collect(Collectors.toList()));
+            }
             log.info("解析书籍成功:{}", bookVo);
         } else {
-            log.error("获取书籍失败：{}", html);
+            log.error("获取书籍失败：{}", url);
         }
         return bookVo;
     }
 
     protected String getInfo(Element element) {
         return element.nextSibling().toString().trim();
+    }
+
+    protected String getInfoOrNext(Element element) {
+        String info = element.nextSibling().toString().trim();
+        if (StringUtils.isBlank(info)) {
+            Element publisherElement = element.nextElementSibling();
+            if (publisherElement != null) {
+                info = StringUtils.trimToEmpty(publisherElement.text());
+            }
+        }
+        return info;
     }
 
 }

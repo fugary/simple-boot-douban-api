@@ -83,19 +83,21 @@ public class DoubanApiController {
             String href = content.attr("href");
             Map<String, String> map = DoubanUrlUtils.parseQuery(URI.create(href).getQuery());
             String url = map.get("url");
-            list.add(CompletableFuture.supplyAsync(() -> {
-                RequestContextHolder.setRequestAttributes(requestAttributes);
-                BookVo bookVo = bookLoader.loadBook(url);
-                if (bookVo != null) {
-                    resultVo.setSuccess(true);
-                    processBookImage(bookVo);
-                    resultVo.getBooks().add(bookVo);
-                }
-                return bookVo;
-            }, executorService));
+            if (DoubanUrlUtils.isBookUrl(url) && list.size() < doubanApiConfigProperties.getCount()) {
+                list.add(CompletableFuture.supplyAsync(() -> {
+                    RequestContextHolder.setRequestAttributes(requestAttributes);
+                    BookVo bookVo = bookLoader.loadBook(url);
+                    if (bookVo != null) {
+                        resultVo.setSuccess(true);
+                        processBookImage(bookVo);
+                        resultVo.getBooks().add(bookVo);
+                    }
+                    return bookVo;
+                }, executorService));
+            }
         });
         CompletableFuture.allOf(list.toArray(new CompletableFuture[0])).get();
-        log.info("查询书籍{}条完成耗时{}ms", bookElements.size(), System.currentTimeMillis() - start);
+        log.info("查询书籍{}条完成耗时{}ms", list.size(), System.currentTimeMillis() - start);
         return resultVo;
     }
 
@@ -111,7 +113,7 @@ public class DoubanApiController {
         ResponseEntity<String> responseEntity = restTemplate.exchange(doubanApiConfigProperties.getSearchUrl(), HttpMethod.GET, entity, String.class, catType, searchText);
         String resultStr = responseEntity.getBody();
         Document doc = Jsoup.parse(resultStr);
-        return doc.select("a.nbg").stream().limit(doubanApiConfigProperties.getCount()).collect(Collectors.toList());
+        return doc.select("a.nbg");
     }
 
     /**
@@ -126,7 +128,7 @@ public class DoubanApiController {
         ResponseEntity<DoubanSearchResultVo> responseEntity = restTemplate.exchange(doubanApiConfigProperties.getSearchJsonUrl(), HttpMethod.GET, entity, DoubanSearchResultVo.class, catType, searchText);
         DoubanSearchResultVo doubanResultVo = responseEntity.getBody();
         if (doubanResultVo != null) {
-            return doubanResultVo.getItems().stream().limit(doubanApiConfigProperties.getCount())
+            return doubanResultVo.getItems().stream()
                     .flatMap(elementStr -> Jsoup.parseBodyFragment(elementStr).body().select("a.nbg").stream()).collect(Collectors.toList());
         }
         return new ArrayList<>();

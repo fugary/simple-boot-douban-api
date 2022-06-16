@@ -13,6 +13,8 @@ public class DoubanUrlUtils {
 
     private static final Pattern QUERY_PATTERN = Pattern.compile("\\s*&\\s*");
 
+    public static final Pattern ID_PATTERN = Pattern.compile(".*/subject/(\\d+)/?");
+
     /**
      * 解析url地址中的参数
      *
@@ -24,5 +26,9 @@ public class DoubanUrlUtils {
                 .splitAsStream(query.trim())
                 .map(s -> s.split("=", 2))
                 .collect(Collectors.toMap(a -> a[0], a -> a.length > 1 ? a[1] : ""));
+    }
+
+    public static boolean isBookUrl(String url){
+        return ID_PATTERN.matcher(url).matches();
     }
 }
