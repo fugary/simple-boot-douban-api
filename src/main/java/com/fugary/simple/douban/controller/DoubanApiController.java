@@ -73,8 +73,8 @@ public class DoubanApiController {
         headers.set(HttpHeaders.USER_AGENT, HttpRequestUtils.getUserAgent());
         final HttpEntity<String> entity = new HttpEntity<>(headers);
         String catType = doubanApiConfigProperties.getMappings().get("book");
-//        List<Element> bookElements = searchBookElements(searchText, entity, catType); // 按照网页查询，应该速度稍慢
-        List<Element> bookElements = searchBookElementsNew(searchText, entity, catType);
+        List<Element> bookElements = searchBookElements(searchText, entity, catType); // 按照网页查询，应该速度稍慢
+//        List<Element> bookElements = searchBookElementsNew(searchText, entity, catType);
         log.info("查询列表{}条耗时{}ms", bookElements.size(), System.currentTimeMillis() - start);
         List<CompletableFuture<BookVo>> list = new ArrayList<>();
         RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
