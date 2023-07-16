@@ -18,17 +18,13 @@ public class DoubanApiConfigProperties {
 
     private int count = 3;
 
-    private String searchUrl;
+    private String baseUrl;
 
-    private String searchJsonUrl;
+    private String searchUrl;
 
     private String detailUrl;
 
     private String isbnUrl;
-
-    private String imageUrl;
-
-    private List<Integer> imageDomains = new ArrayList<>(Arrays.asList(1, 2, 3, 4, 9));
 
     private boolean proxyImageUrl;
 

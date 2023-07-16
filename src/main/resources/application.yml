@@ -13,10 +13,8 @@ douban:
     mappings:
       book: 1001
     count: ${DOUBAN_CONCURRENCY_SIZE:5}
+    base-url: https://book.douban.com/
     search-url: https://www.douban.com/search?cat={searchType}&q={searchText}
-    search-json-url: https://www.douban.com/j/search?start=0&cat={searchType}&q={searchText}
     detail-url: https://book.douban.com/subject/{id}/
     isbn-url: https://book.douban.com/isbn/{isbn}/
-    image-url: https://{image}.doubanio.com
-    proxy-image-url: ${DOUBAN_PROXY_IMAGE_URL:false}
-    image-domains: [ 1,2,3,4,9 ]
+    proxy-image-url: ${DOUBAN_PROXY_IMAGE_URL:true}

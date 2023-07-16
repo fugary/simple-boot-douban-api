@@ -5,7 +5,6 @@ import com.fugary.simple.douban.loader.BookLoader;
 import com.fugary.simple.douban.util.DoubanUrlUtils;
 import com.fugary.simple.douban.util.HttpRequestUtils;
 import com.fugary.simple.douban.vo.BookVo;
-import com.fugary.simple.douban.vo.DoubanSearchResultVo;
 import com.fugary.simple.douban.vo.ResultVo;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -25,7 +24,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.servlet.http.HttpServletRequest;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -34,7 +32,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
 
 /**
  * Created on 2021/8/17 18:43 .<br>
@@ -74,7 +71,6 @@ public class DoubanApiController {
         final HttpEntity<String> entity = new HttpEntity<>(headers);
         String catType = doubanApiConfigProperties.getMappings().get("book");
         List<Element> bookElements = searchBookElements(searchText, entity, catType); // 按照网页查询，应该速度稍慢
-//        List<Element> bookElements = searchBookElementsNew(searchText, entity, catType);
         log.info("查询列表{}条耗时{}ms", bookElements.size(), System.currentTimeMillis() - start);
         List<CompletableFuture<BookVo>> list = new ArrayList<>();
         RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
@@ -116,25 +112,6 @@ public class DoubanApiController {
         return doc.select("a.nbg");
     }
 
-    /**
-     * 列表从json获取
-     *
-     * @param searchText
-     * @param entity
-     * @param catType
-     * @return
-     */
-    protected List<Element> searchBookElementsNew(String searchText, HttpEntity<String> entity, String catType) {
-        ResponseEntity<DoubanSearchResultVo> responseEntity = restTemplate.exchange(doubanApiConfigProperties.getSearchJsonUrl(), HttpMethod.GET, entity, DoubanSearchResultVo.class, catType, searchText);
-        DoubanSearchResultVo doubanResultVo = responseEntity.getBody();
-        if (doubanResultVo != null) {
-            return doubanResultVo.getItems().stream()
-                    .flatMap(elementStr -> Jsoup.parseBodyFragment(elementStr).body().select("a.nbg").stream()).collect(Collectors.toList());
-        }
-        return new ArrayList<>();
-    }
-
-
     @GetMapping("/isbn/{isbn}")
     @ResponseBody
     public ResultVo searchIsbn(@PathVariable("isbn") String isbn) {
@@ -175,14 +152,13 @@ public class DoubanApiController {
      */
     protected void processBookImage(BookVo bookVo) {
         if (bookVo != null && StringUtils.isNotBlank(bookVo.getImage()) && doubanApiConfigProperties.isProxyImageUrl()) {
-            try {
-                URI uri = new URI(bookVo.getImage());
-                HttpServletRequest request = HttpRequestUtils.getCurrentRequest();
-                bookVo.setImage(UriComponentsBuilder.fromUri(uri).scheme(HttpRequestUtils.getSchema())
-                        .host(request.getServerName()).port(request.getServerPort())
-                        .build().toUriString());
-            } catch (URISyntaxException e) {
-                log.error("代理图片URL错误", e);
+            HttpServletRequest request = HttpRequestUtils.getCurrentRequest();
+            UriComponentsBuilder builder = UriComponentsBuilder.fromPath("/view/cover")
+                    .scheme(HttpRequestUtils.getSchema())
+                    .host(request.getServerName()).port(request.getServerPort());
+            if (!bookVo.getImage().contains(builder.toUriString())) {
+                String coverUrl = builder.queryParam("cover", bookVo.getImage()).build().toUriString();
+                bookVo.setImage(coverUrl);
             }
         }
     }
